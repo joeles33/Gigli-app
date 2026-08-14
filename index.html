@@ -447,3 +447,49 @@ async function enviar(){
     content: t
   });
 }
+async function screenPlans(){
+  tabs.classList.remove('hide'); setTab('plans');
+  app.innerHTML = `<h1>Mis planes</h1><p class="sub">Cargando...</p>`;
+  const { data } = await sb.from('activity_requests').select('*').eq('user_id', me.id).order('created_at', {ascending:false}).limit(20);
+  const lista = (data || []);
+  app.innerHTML = `
+    <h1>Mis planes</h1>
+    ${lista.length ? lista.map(r => `
+      <div class="card">
+        <div class="row">
+          <div><strong>${esc(r.category)}</strong><br><span class="muted">${esc(r.place_name)} · ${esc(r.time_slot)}</span></div>
+          <span class="muted">${r.status === 'open' ? 'Buscando' : r.status === 'matched' ? 'Con match' : 'Cerrado'}</span>
+        </div>
+      </div>`).join('') : '<p class="sub">Todavía no tienes planes. Crea uno desde Explorar.</p>'}
+  `;
+}
+
+async function screenChats(){
+  tabs.classList.remove('hide'); setTab('chats');
+  app.innerHTML = `<h1>Chats</h1><p class="sub">Cargando...</p>`;
+  const { data } = await sb.from('matches').select('*').or(`user_a.eq.${me.id},user_b.eq.${me.id}`).eq('status','active');
+  const lista = (data || []);
+  app.innerHTML = `
+    <h1>Chats</h1>
+    ${lista.length ? lista.map(m => `
+      <div class="card" data-id="${m.id}" style="cursor:pointer">
+        <div class="row">
+          <div class="avatar">${ini('G')}</div>
+          <div style="flex:1"><strong>${esc(m.place_name)}</strong><br><span class="muted">${esc(m.time_slot)}</span></div>
+        </div>
+      </div>`).join('') : '<p class="sub">Aún no tienes conversaciones.</p>'}
+  `;
+  document.querySelectorAll('[data-id]').forEach(c => {
+    c.onclick = () => screenChat(lista.find(x => x.id === c.dataset.id));
+  });
+}
+
+function screenMe(){
+  tabs.classList.remove('hide'); setTab('me');
+  const p = state.profile;
+  app.innerHTML = `
+    <h1>Perfil</h1>
+    <div class="card">
+      <div class="row">
+        <div class="avatar">${ini(p.full_name)}</div>
+        <div style="flex:1"><strong>${esc(p.
