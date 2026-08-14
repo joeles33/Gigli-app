@@ -538,3 +538,15 @@ function menuSeguridad(m){
     screenChats();
   };
                                                              }
+setTimeout(() => {
+  const s = document.getElementById('splash');
+  s.style.opacity = '0';
+  setTimeout(() => {
+    s.remove();
+    app.classList.remove('hide');
+    if(connect()) start(); else screenConfig();
+  }, 600);
+}, 3800);
+</script>
+</body>
+</html>
