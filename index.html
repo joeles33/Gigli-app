@@ -511,3 +511,30 @@ function screenMe(){
   };
   document.getElementById('out').onclick = logout;
 }
+function menuSeguridad(m){
+  const otro = m.user_a === me.id ? m.user_b : m.user_a;
+  const box = document.createElement('div');
+  box.className = 'card';
+  box.style.cssText = 'position:fixed;bottom:70px;left:12px;right:12px;max-width:496px;margin:0 auto;z-index:50';
+  box.innerHTML = `
+    <button class="btn ghost" id="rep">Reportar a esta persona</button>
+    <button class="btn ghost" id="blo">Bloquear</button>
+    <button class="btn ghost" id="cerrar">Cancelar</button>
+  `;
+  document.body.appendChild(box);
+  box.querySelector('#cerrar').onclick = () => box.remove();
+  box.querySelector('#rep').onclick = async () => {
+    const motivo = prompt('¿Qué ha pasado?');
+    if(motivo){
+      await sb.from('reports').insert({ reporter_id: me.id, reported_id: otro, reason: motivo });
+      alert('Gracias. Lo revisaremos.');
+    }
+    box.remove();
+  };
+  box.querySelector('#blo').onclick = async () => {
+    await sb.from('blocks').insert({ user_id: me.id, blocked_id: otro });
+    await sb.from('matches').update({ status: 'closed' }).eq('id', m.id);
+    box.remove();
+    screenChats();
+  };
+                                                             }
