@@ -194,3 +194,43 @@ async function logout(){
   me = null;
   screenAuth('in');
 }
+const MOODS = ['Relajarme','Socializar','Conocer gente','Ejercicio','Explorar','Aburrido','Algo espontáneo'];
+
+function screenHome(){
+  tabs.classList.remove('hide');
+  setTab('home');
+  const nombre = (state.profile.full_name || '').split(' ')[0];
+  app.innerHTML = `
+    <h1>¿Qué quieres hacer hoy${nombre ? ', ' + esc(nombre) : ''}?</h1>
+    <p class="sub">Elige un plan y Gigli busca sitio, hora y gente.</p>
+    <div class="chips" id="moods">
+      ${MOODS.map(m => `<button class="chip${state.mood===m?' on':''}" data-m="${esc(m)}">${esc(m)}</button>`).join('')}
+    </div>
+    <h2>Categorías</h2>
+    <div class="grid" id="cats">
+      ${CATS.map(c => `<button class="cat" data-c="${esc(c.n)}"><span class="e">${c.e}</span><span class="n">${esc(c.n)}</span></button>`).join('')}
+    </div>
+  `;
+  document.querySelectorAll('#moods .chip').forEach(b => {
+    b.onclick = () => { state.mood = state.mood === b.dataset.m ? null : b.dataset.m; screenHome(); };
+  });
+  document.querySelectorAll('#cats .cat').forEach(b => {
+    b.onclick = () => screenPlan(b.dataset.c);
+  });
+}
+
+function setTab(name){
+  document.querySelectorAll('.tab').forEach(t => {
+    t.classList.toggle('on', t.dataset.t === name);
+  });
+}
+
+document.querySelectorAll('.tab').forEach(t => {
+  t.onclick = () => {
+    const n = t.dataset.t;
+    if(n === 'home') screenHome();
+    if(n === 'plans') screenPlans();
+    if(n === 'chats') screenChats();
+    if(n === 'me') screenMe();
+  };
+});
