@@ -275,3 +275,64 @@ function screenPlan(cat){
   });
   document.getElementById('save').onclick = savePlan;
 }
+async function savePlan(){
+  const place = document.getElementById('place').value.trim();
+  const city = document.getElementById('city').value.trim();
+  const err = document.getElementById('e1');
+  if(!place || !city){
+    err.textContent = 'Escribe el lugar y la ciudad.';
+    err.classList.remove('hide');
+    return;
+  }
+  state.place = place; state.city = city;
+  const btn = document.getElementById('save');
+  btn.disabled = true; btn.textContent = 'Guardando...';
+  try {
+    const { data, error } = await sb.from('activity_requests').insert({
+      user_id: me.id,
+      category: state.cat,
+      place_name: place,
+      city: city,
+      time_slot: state.slot,
+      group_size: state.size || 1,
+      mood: state.mood || null,
+      status: 'open'
+    }).select().single();
+    if(error) throw error;
+    state.request = data;
+    screenWaiting();
+  } catch(e){
+    err.textContent = e.message || 'No se pudo guardar.';
+    err.classList.remove('hide');
+    btn.disabled = false; btn.textContent = 'Buscar personas';
+  }
+}
+
+function screenWaiting(){
+  tabs.classList.add('hide');
+  const r = state.request;
+  app.innerHTML = `
+    <div class="top"><button class="back" id="bk">‹</button><h2 style="margin:0">Buscando</h2></div>
+    <div class="card">
+      <div class="row">
+        <div><strong>${esc(r.category)}</strong><br><span class="muted">${esc(r.place_name)} · ${esc(r.time_slot)}</span></div>
+        <div class="e" style="font-size:26px">🔎</div>
+      </div>
+    </div>
+    <p class="sub">Te avisamos en cuanto haya alguien compatible. Mientras tanto, mira estas ideas.</p>
+    <h2>Mientras esperas</h2>
+    <div class="grid" id="alt"></div>
+    <button class="btn ghost" id="cancel" style="margin-top:16px">Cancelar este plan</button>
+  `;
+  document.getElementById('bk').onclick = screenHome;
+  const otras = CATS.filter(c => c.n !== r.category).sort(() => Math.random() - .5).slice(0, 4);
+  document.getElementById('alt').innerHTML = otras.map(c =>
+    `<button class="cat" data-c="${esc(c.n)}"><span class="e">${c.e}</span><span class="n">${esc(c.n)}</span></button>`
+  ).join('');
+  document.querySelectorAll('#alt .cat').forEach(b => b.onclick = () => screenPlan(b.dataset.c));
+  document.getElementById('cancel').onclick = async () => {
+    await sb.from('activity_requests').update({ status: 'cancelled' }).eq('id', r.id);
+    screenHome();
+  };
+  findMatch();
+}
