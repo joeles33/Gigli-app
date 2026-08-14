@@ -336,3 +336,59 @@ function screenWaiting(){
   };
   findMatch();
 }
+async function findMatch(){
+  const r = state.request;
+  try {
+    const { data: bl } = await sb.from('blocks').select('blocked_id').eq('user_id', me.id);
+    const bloqueados = (bl || []).map(x => x.blocked_id);
+    const { data: cand, error } = await sb.from('activity_requests')
+      .select('*')
+      .eq('category', r.category)
+      .eq('city', r.city)
+      .eq('time_slot', r.time_slot)
+      .eq('status', 'open')
+      .neq('user_id', me.id)
+      .limit(10);
+    if(error) throw error;
+    const libre = (cand || []).filter(c => !bloqueados.includes(c.user_id));
+    if(!libre.length) return;
+    const otro = libre[0];
+    const { data: m, error: e2 } = await sb.from('matches').insert({
+      request_a: r.id,
+      request_b: otro.id,
+      user_a: me.id,
+      user_b: otro.user_id,
+      place_name: r.place_name,
+      time_slot: r.time_slot,
+      status: 'active'
+    }).select().single();
+    if(e2) throw e2;
+    await sb.from('activity_requests').update({ status: 'matched' }).in('id', [r.id, otro.id]);
+    state.match = m;
+    screenMatch(m);
+  } catch(e){
+    console.log('match:', e.message);
+  }
+}
+
+function screenMatch(m){
+  tabs.classList.add('hide');
+  app.innerHTML = `
+    <div style="text-align:center;padding:30px 0">
+      <div style="font-size:56px">🎉</div>
+      <h1 style="margin-top:10px">¡Tienes match!</h1>
+      <p class="sub">Alguien quiere el mismo plan que tú.</p>
+    </div>
+    <div class="card">
+      <div class="row">
+        <div><strong>${esc(m.place_name)}</strong><br><span class="muted">${esc(m.time_slot)}</span></div>
+        <div class="avatar">${ini('G')}</div>
+      </div>
+    </div>
+    <button class="btn" id="chat">Abrir chat</button>
+    <button class="btn ghost" id="home">Más tarde</button>
+    <p class="muted">Quedad siempre en el lugar público acordado.</p>
+  `;
+  document.getElementById('chat').onclick = () => screenChat(m);
+  document.getElementById('home').onclick = screenHome;
+}
