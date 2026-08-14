@@ -80,3 +80,41 @@ input:focus,textarea:focus{outline:none;border-color:#E11D2E;background:#fff}
 </div>
 
 <script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+const CATS = [
+  {n:'Café',e:'☕'},{n:'Caminar',e:'🚶'},{n:'Gimnasio',e:'🏋️'},{n:'Senderismo',e:'🥾'},
+  {n:'Playa',e:'🏖️'},{n:'Deportes',e:'⚽'},{n:'Bailar',e:'💃'},{n:'Comer',e:'🍽️'},
+  {n:'Museos',e:'🏛️'},{n:'Parques',e:'🌳'},{n:'Conciertos',e:'🎵'},{n:'Viajes',e:'✈️'},
+  {n:'Explorar',e:'🧭'}
+];
+const SLOTS = ['Ahora','En 1 hora','Esta tarde','Esta noche','Mañana'];
+
+const app = document.getElementById('app');
+const tabs = document.getElementById('tabs');
+let sb = null, me = null, state = {};
+
+const esc = s => String(s||'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ini = s => (s||'?').trim().charAt(0).toUpperCase();
+
+function connect(){
+  const url = localStorage.getItem('gigli_url');
+  const key = localStorage.getItem('gigli_key');
+  if(!url || !key) return false;
+  try { sb = createClient(url, key); return true; } catch(e){ return false; }
+}
+
+/* ---------- Pantallas ---------- */
+
+function screenConfig(msg){
+  tabs.classList.add('hide');
+  app.innerHTML = `
+    <h1>Conectar Gigli</h1>
+    <p class="sub">Pega los datos de tu proyecto de Supabase. Solo hay que hacerlo una vez en este dispositivo.</p>
+    ${msg ? `<div class="err">${esc(msg)}</div>` : ''}
+    <div class="card">
+      <label>Project URL</label>
+      <input id="u" placeholder="https://xxxx.supabase.co" autocapitalize="off" autocorrect="off">
+      <label>Clave anon public</label>
+      <input id="k" placeholder="eyJhbGciOi..." autocapitalize="off" autocorrect="off">
+      <button class="btn" id="go">Conectar</button>
