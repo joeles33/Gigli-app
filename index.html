@@ -392,3 +392,58 @@ function screenMatch(m){
   document.getElementById('chat').onclick = () => screenChat(m);
   document.getElementById('home').onclick = screenHome;
 }
+function screenChat(m){
+  tabs.classList.add('hide');
+  state.match = m;
+  app.innerHTML = `
+    <div class="top">
+      <button class="back" id="bk">‹</button>
+      <div class="avatar">${ini('G')}</div>
+      <div style="flex:1"><strong>${esc(m.place_name)}</strong><br><span class="muted">${esc(m.time_slot)}</span></div>
+      <button class="btn small ghost" id="mas">···</button>
+    </div>
+    <div id="msgs" style="padding-bottom:70px"></div>
+    <div class="chatbar">
+      <input id="txt" placeholder="Escribe un mensaje">
+      <button id="send">➤</button>
+    </div>
+  `;
+  document.getElementById('bk').onclick = screenChats;
+  document.getElementById('mas').onclick = () => menuSeguridad(m);
+  document.getElementById('send').onclick = enviar;
+  document.getElementById('txt').onkeydown = e => { if(e.key === 'Enter') enviar(); };
+  cargarMensajes(m);
+  if(state.canal) sb.removeChannel(state.canal);
+  state.canal = sb.channel('chat-' + m.id)
+    .on('postgres_changes', { event:'INSERT', schema:'public', table:'chat_messages', filter:'match_id=eq.' + m.id },
+      p => pintar(p.new))
+    .subscribe();
+}
+
+async function cargarMensajes(m){
+  const { data } = await sb.from('chat_messages').select('*').eq('match_id', m.id).order('created_at');
+  document.getElementById('msgs').innerHTML = '';
+  (data || []).forEach(pintar);
+}
+
+function pintar(msg){
+  const box = document.getElementById('msgs');
+  if(!box) return;
+  const d = document.createElement('div');
+  d.className = 'msg ' + (msg.sender_id === me.id ? 'mine' : 'their');
+  d.textContent = msg.content;
+  box.appendChild(d);
+  window.scrollTo(0, document.body.scrollHeight);
+}
+
+async function enviar(){
+  const i = document.getElementById('txt');
+  const t = i.value.trim();
+  if(!t) return;
+  i.value = '';
+  await sb.from('chat_messages').insert({
+    match_id: state.match.id,
+    sender_id: me.id,
+    content: t
+  });
+}
