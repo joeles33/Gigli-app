@@ -118,3 +118,39 @@ function screenConfig(msg){
       <label>Clave anon public</label>
       <input id="k" placeholder="eyJhbGciOi..." autocapitalize="off" autocorrect="off">
       <button class="btn" id="go">Conectar</button>
+</div>
+    <p class="muted">Los datos se guardan solo en este teléfono.</p>
+  `;
+  document.getElementById('u').value = localStorage.getItem('gigli_url') || '';
+  document.getElementById('k').value = localStorage.getItem('gigli_key') || '';
+  document.getElementById('go').onclick = () => {
+    const u = document.getElementById('u').value.trim();
+    const k = document.getElementById('k').value.trim();
+    if(!u.startsWith('http') || k.length < 20) return screenConfig('Revisa la URL y la clave.');
+    localStorage.setItem('gigli_url', u);
+    localStorage.setItem('gigli_key', k);
+    if(connect()) start(); else screenConfig('No se pudo conectar.');
+  };
+}
+
+function screenAuth(mode, msg){
+  tabs.classList.add('hide');
+  const reg = mode === 'reg';
+  app.innerHTML = `
+    <h1>${reg ? 'Crear cuenta' : 'Entrar'}</h1>
+    <p class="sub">${reg ? 'Empieza a descubrir planes cerca de ti.' : 'Bienvenido de nuevo a Gigli.'}</p>
+    ${msg ? `<div class="err">${esc(msg)}</div>` : ''}
+    <div class="card">
+      ${reg ? '<label>Nombre</label><input id="n" placeholder="Tu nombre" autocapitalize="words">' : ''}
+      <label>Correo</label>
+      <input id="e" type="email" placeholder="tu@correo.com" autocapitalize="off" autocorrect="off">
+      <label>Contraseña</label>
+      <input id="p" type="password" placeholder="Mínimo 6 caracteres">
+      <button class="btn" id="go">${reg ? 'Crear cuenta' : 'Entrar'}</button>
+      <button class="btn ghost" id="sw">${reg ? 'Ya tengo cuenta' : 'Crear una cuenta'}</button>
+    </div>
+    <p class="muted">Nunca mostramos tu ubicación exacta a otras personas.</p>
+  `;
+  document.getElementById('sw').onclick = () => screenAuth(reg ? 'in' : 'reg');
+  document.getElementById('go').onclick = doAuth;
+}
