@@ -154,3 +154,43 @@ function screenAuth(mode, msg){
   document.getElementById('sw').onclick = () => screenAuth(reg ? 'in' : 'reg');
   document.getElementById('go').onclick = doAuth;
 }
+async function doAuth(){
+  const reg = !!document.getElementById('n');
+  const email = document.getElementById('e').value.trim();
+  const pass = document.getElementById('p').value;
+  const name = reg ? document.getElementById('n').value.trim() : '';
+  if(!email || pass.length < 6) return screenAuth(reg?'reg':'in','Revisa el correo y la contraseña.');
+  if(reg && !name) return screenAuth('reg','Escribe tu nombre.');
+  const btn = document.getElementById('go');
+  btn.disabled = true; btn.textContent = 'Un momento...';
+  try {
+    if(reg){
+      const { data, error } = await sb.auth.signUp({ email, password: pass });
+      if(error) throw error;
+      if(data.user){
+        await sb.from('profiles').upsert({ id: data.user.id, full_name: name });
+      }
+    } else {
+      const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+      if(error) throw error;
+    }
+    start();
+  } catch(err){
+    screenAuth(reg?'reg':'in', err.message || 'No se pudo completar.');
+  }
+}
+
+async function start(){
+  const { data } = await sb.auth.getSession();
+  if(!data.session) return screenAuth('reg');
+  me = data.session.user;
+  const { data: p } = await sb.from('profiles').select('*').eq('id', me.id).maybeSingle();
+  state.profile = p || { id: me.id, full_name: 'Tú' };
+  screenHome();
+}
+
+async function logout(){
+  await sb.auth.signOut();
+  me = null;
+  screenAuth('in');
+}
