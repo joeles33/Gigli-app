@@ -234,3 +234,44 @@ document.querySelectorAll('.tab').forEach(t => {
     if(n === 'me') screenMe();
   };
 });
+function screenPlan(cat){
+  tabs.classList.add('hide');
+  state.cat = cat;
+  state.slot = state.slot || SLOTS[0];
+  const c = CATS.find(x => x.n === cat) || {e:'📍'};
+  app.innerHTML = `
+    <div class="top"><button class="back" id="bk">‹</button><h2 style="margin:0">${c.e} ${esc(cat)}</h2></div>
+    <p class="sub">¿Cuándo te viene bien?</p>
+    <div class="chips" id="slots">
+      ${SLOTS.map(s => `<button class="chip${state.slot===s?' on':''}" data-s="${esc(s)}">${esc(s)}</button>`).join('')}
+    </div>
+    <h2>¿Dónde?</h2>
+    <div class="card">
+      <label>Lugar público del encuentro</label>
+      <input id="place" placeholder="Ej: Cafetería Central, Plaza Mayor" value="${esc(state.place||'')}">
+      <label>Zona o ciudad</label>
+      <input id="city" placeholder="Ej: Oviedo" value="${esc(state.city||'')}">
+      <label>¿Con cuánta gente?</label>
+      <div class="chips" id="size" style="margin-bottom:4px">
+        <button class="chip on" data-z="1">1 persona</button>
+        <button class="chip" data-z="3">Grupo pequeño</button>
+        <button class="chip" data-z="6">Grupo grande</button>
+      </div>
+    </div>
+    <div class="err hide" id="e1"></div>
+    <button class="btn" id="save">Buscar personas</button>
+    <p class="muted">Solo se comparte el lugar público. Tu dirección nunca se muestra.</p>
+  `;
+  document.getElementById('bk').onclick = screenHome;
+  document.querySelectorAll('#slots .chip').forEach(b => {
+    b.onclick = () => { state.slot = b.dataset.s; screenPlan(cat); };
+  });
+  document.querySelectorAll('#size .chip').forEach(b => {
+    b.onclick = () => {
+      document.querySelectorAll('#size .chip').forEach(x => x.classList.remove('on'));
+      b.classList.add('on');
+      state.size = Number(b.dataset.z);
+    };
+  });
+  document.getElementById('save').onclick = savePlan;
+}
