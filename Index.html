@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>Gigli</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.0/dist/umd/supabase.js"></script>
+<style>
+:root{
+  --bg:#ffffff; --card:#ffffff; --ink:#111214; --ink2:#6b6f76; --line:#ececf0;
+  --red:#e11d2e; --red-soft:#fdecee; --shadow:0 6px 24px rgba(17,18,20,.08);
+  --r:20px;
+}
+body.dark{
+  --bg:#0e0f11; --card:#17181b; --ink:#f5f5f7; --ink2:#9a9ea6; --line:#25262b;
+  --red:#ff4d5e; --red-soft:#2a1417; --shadow:0 6px 24px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif;
+  font-size:16px;line-height:1.45;overscroll-behavior:none}
+#app{max-width:640px;margin:0 auto;padding:16px 16px 96px}
+h1{font-size:28px;font-weight:800;letter-spacing:-.6px;margin:6px 0 4px}
+h2{font-size:20px;font-weight:750;letter-spacing:-.3px;margin:18px 0 10px}
+p.sub{color:var(--ink2);margin:0 0 14px;font-size:15px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  box-shadow:var(--shadow);padding:16px;margin-bottom:12px}
+.btn{display:block;width:100%;min-height:56px;border:0;border-radius:16px;
+  background:var(--red);color:#fff;font-size:17px;font-weight:700;cursor:pointer;
+  padding:16px;margin-top:10px;transition:transform .12s ease,opacity .12s ease}
+.btn:active{transform:scale(.985)}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn.soft{background:var(--red-soft);color:var(--red)}
+.btn.small{min-height:44px;font-size:15px;padding:10px 14px;width:auto;display:inline-block;margin-right:8px}
+input,textarea,select{width:100%;min-height:54px;border:1.5px solid var(--line);border-radius:14px;
+  padding:14px;font-size:16px;background:var(--card);color:var(--ink);margin-top:8px;font-family:inherit}
+textarea{min-height:90px}
+label{font-size:14px;font-weight:650;color:var(--ink2)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media(min-width:520px){.grid{grid-template-columns:repeat(4,1fr)}}
+.cat{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px 6px;
+  text-align:center;box-shadow:var(--shadow);cursor:pointer;transition:transform .12s ease}
+.cat:active{transform:scale(.96)}
+.cat .e{font-size:26px;display:block;margin-bottom:6px}
+.cat .n{font-size:13px;font-weight:650}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.chip{border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;
+  padding:10px 14px;font-size:14px;font-weight:600;cursor:pointer}
+.chip.on{background:var(--red);border-color:var(--red);color:#fff}
+.row{display:flex;align-items:center;gap:12px}
+.row .grow{flex:1;min-width:0}
+.muted{color:var(--ink2);font-size:14px}
+.pill{display:inline-block;background:var(--red-soft);color:var(--red);border-radius:999px;
+  padding:4px 10px;font-size:12px;font-weight:700}
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.back{background:none;border:0;color:var(--red);font-size:16px;font-weight:700;padding:8px 0;cursor:pointer}
+.nav{position:fixed;left:0;right:0;bottom:0;background:color-mix(in srgb,var(--bg) 88%,transparent);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line);
+  display:flex;padding:8px 4px calc(8px + env(safe-area-inset-bottom))}
+.nav button{flex:1;background:none;border:0;color:var(--ink2);font-size:11px;font-weight:650;padding:6px 2px;cursor:pointer}
+.nav button .i{display:block;font-size:20px;margin-bottom:2px}
+.nav button.on{color:var(--red)}
+.msg{max-width:78%;padding:11px 14px;border-radius:18px;margin-bottom:8px;font-size:15px;word-wrap:break-word}
+.msg.me{background:var(--red);color:#fff;margin-left:auto;border-bottom-right-radius:6px}
+.msg.you{background:var(--card);border:1px solid var(--line);border-bottom-left-radius:6px}
+#msgs{min-height:40vh;max-height:52vh;overflow-y:auto;padding:4px}
+.alert{background:var(--red-soft);color:var(--red);border-radius:14px;padding:12px;font-size:14px;font-weight:600;margin:10px 0}
+.hide{display:none!important}
+.spin{width:26px;height:26px;border:3px solid var(--line);border-top-color:var(--red);
+  border-radius:50%;animation:sp 1s linear infinite;margin:16px auto}
+@keyframes sp{to{transform:rotate(360deg)}}
+/* ---- Splash del huevo ---- */
+#splash{position:fixed;inset:0;background:#fff;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;z-index:99}
+.egg{width:110px;height:140px;background:#fff;border:2px solid #111214;
+  border-radius:50% 50% 50% 50%/60% 60% 40% 40%;position:relative;box-shadow:0 12px 30px rgba(0,0,0,.12);
+  animation:shake 1.1s ease-in-out .3s 2}
+.egg:after{content:"";position:absolute;left:-2px;right:-2px;top:52%;height:16px;background:#fff;
+  clip-path:polygon(0 40%,12% 0,24% 55%,38% 5%,52% 60%,66% 8%,80% 55%,92% 10%,100% 45%,100% 100%,0 100%);
+  border-top:2px solid #111214;opacity:0;animation:crack .5s ease 2.4s forwards}
+@keyframes shake{0%,100%{transform:rotate(0)}25%{transform:rotate(-7deg)}75%{transform:rotate(7deg)}}
+@keyframes crack{to{opacity:1}}
+#chick{font-size:64px;opacity:0;transform:scale(.4);animation:pop .6s cubic-bezier(.2,1.6,.4,1) 2.9s forwards;
+  position:absolute}
+@keyframes pop{to{opacity:1;transform:scale(1)}}
+#brand{margin-top:26px;font-size:36px;font-weight:850;letter-spacing:-1.2px;color:#111214;
+  opacity:0;animation:fade .6s ease 3.3s forwards}
+#brand span{color:var(--red)}
+#tag{color:#6b6f76;font-size:15px;opacity:0;animation:fade .6s ease 3.6s forwards;margin-top:4px}
+@keyframes fade{to{opacity:1}}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01s!important}}
+</style>
+</head>
+<body>
+
+<div id="splash">
+  <div style="position:relative;display:flex;align-items:center;justify-content:center">
+    <div class="egg"></div>
+    <div id="chick">🐣</div>
+  </div>
+  <div id="brand">Gig<span>li</span></div>
+  <div id="tag">Sal, explora, conoce gente</div>
+</div>
+
+<div id="app"></div>
+<div class="nav hide" id="nav">
+  <button data-v="home" class="on"><span class="i">🏠</span>Inicio</button>
+  <button data-v="plans"><span class="i">📅</span>Planes</button>
+  <button data-v="chats"><span class="i">💬</span>Chats</button>
+  <button data-v="me"><span class="i">👤</span>Perfil</button>
+</div>
+
+<script>
+/* =======================================================
+   GIGLI — app completa en un solo archivo
+   ======================================================= */
+var S = { sb:null, user:null, profile:null, lang:'es', dark:false,
+          pos:null, cat:null, mood:null, place:null, size:1,
+          match:null, seen:{}, chan:null, timer:null };
+
+var LS = {
+  get:function(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
+  set:function(k,v){ try{ localStorage.setItem(k,v); return true; }catch(e){ return false; } },
+  del:function(k){ try{ localStorage.removeItem(k); }catch(e){} }
+};
+
+var T = {
+  es:{ q:'¿Qué quieres hacer hoy?', mood:'¿Cómo te sientes?', near:'Lugares cerca de ti',
+       when:'¿A qué hora?', who:'¿Con cuánta gente?', wait:'Buscando personas…',
+       nomatch:'Todavía no hay nadie. Seguimos buscando.', matched:'¡Tienes match!',
+       plans:'Tus planes', chats:'Tus chats', me:'Tu perfil', send:'Enviar',
+       write:'Escribe un mensaje', cancel:'Cancelar plan', logout:'Cerrar sesión' },
+  en:{ q:'What do you want to do today?', mood:'How are you feeling?', near:'Places near you',
+       when:'What time?', who:'How many people?', wait:'Looking for people…',
+       nomatch:'Nobody yet. Still looking.', matched:'You have a match!',
+       plans:'Your plans', chats:'Your chats', me:'Your profile', send:'Send',
+       write:'Write a message', cancel:'Cancel plan', logout:'Log out' }
+};
+function t(k){ return (T[S.lang] && T[S.lang][k]) || T.es[k] || k; }
+
+var CATS = [
+ {s:'cafe',      e:'☕', es:'Café',       en:'Coffee',   k:'amenity', v:'cafe'},
+ {s:'caminar',   e:'🚶', es:'Caminar',    en:'Walk',     k:'leisure', v:'park'},
+ {s:'gimnasio',  e:'🏋️', es:'Gimnasio',   en:'Gym',      k:'leisure', v:'fitness_centre'},
+ {s:'senderismo',e:'🥾', es:'Senderismo', en:'Hiking',   k:'leisure', v:'nature_reserve'},
+ {s:'playa',     e:'🏖️', es:'Playa',      en:'Beach',    k:'natural', v:'beach'},
+ {s:'deportes',  e:'⚽', es:'Deportes',   en:'Sports',   k:'leisure', v:'sports_centre'},
+ {s:'bailar',    e:'💃', es:'Bailar',     en:'Dancing',  k:'amenity', v:'nightclub'},
+ {s:'comer',     e:'🍽️', es:'Comer',      en:'Eat',      k:'amenity', v:'restaurant'},
+ {s:'museos',    e:'🖼️', es:'Museos',     en:'Museums',  k:'tourism', v:'museum'},
+ {s:'parques',   e:'🌳', es:'Parques',    en:'Parks',    k:'leisure', v:'park'},
+ {s:'conciertos',e:'🎵', es:'Conciertos', en:'Concerts', k:'amenity', v:'theatre'},
+ {s:'viajes',    e:'✈️', es:'Viajes',     en:'Trips',    k:'tourism', v:'attraction'},
+ {s:'explorar',  e:'🧭', es:'Explorar',   en:'Explore',  k:'tourism', v:'attraction'}
+];
+var MOODS = [
+ {s:'relax', e:'😌', es:'Relajarme', en:'Relax'},
+ {s:'social', e:'🥂', es:'Socializar', en:'Socialize'},
+ {s:'conocer', e:'👋', es:'Conocer gente', en:'Meet people'},
+ {s:'ejercicio', e:'💪', es:'Hacer ejercicio', en:'Exercise'},
+ {s:'explorar', e:'🧭', es:'Explorar', en:'Explore'},
+ {s:'aburrido', e:'🥱', es:'Aburrido', en:'Bored'},
+ {s:'espontaneo', e:'⚡', es:'Algo espontáneo', en:'Spontaneous'}
+];
+function catBy(s){ for(var i=0;i<CATS.length;i++){ if(CATS[i].s===s) return CATS[i]; } return null; }
+function catName(c){ return S.lang==='en'? c.en : c.es; }
+
+/* ---------- utilidades ---------- */
+var A = document.getElementById('app');
+function h(html){ A.innerHTML = html; window.scrollTo(0,0); }
+function esc(x){ return String(x==null?'':x).replace(/[&<>"']/g,function(m){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]; }); }
+function on(id,fn){ var n=document.getElementById(id); if(n) n.onclick=fn; }
+function val(id){ var n=document.getElementById(id); return n? n.value.trim() : ''; }
+function alertBox(m){ return '<div class="alert">'+esc(m)+'</div>'; }
+function fmtTime(iso){ var d=new Date(iso);
+  return d.toLocaleDateString(S.lang==='en'?'en-US':'es-ES',{weekday:'short',day:'numeric',month:'short'})
+    +' · '+d.toLocaleTimeString(S.lang==='en'?'en-US':'es-ES',{hour:'2-digit',minute:'2-digit'}); }
+function dist(a,b,c,d){ var R=6371,p=Math.PI/180;
+  var x=(c-a)*p, y=(d-b)*p;
+  var q=Math.sin(x/2)*Math.sin(x/2)+Math.cos(a*p)*Math.cos(c*p)*Math.sin(y/2)*Math.sin(y/2);
+  return R*2*Math.atan2(Math.sqrt(q),Math.sqrt(1-q)); }
+function notify(title,body){
+  try{ if(window.Notification && Notification.permission==='granted') new Notification(title,{body:body}); }catch(e){}
+}
+function askNotify(){
+  try{ if(window.Notification && Notification.permission==='default') Notification.requestPermission(); }catch(e){}
+}
+function nav(show){ var n=document.getElementById('nav'); if(n) n.className = show? 'nav':'nav hide'; }
+function setTab(v){ var b=document.querySelectorAll('#nav button');
+  for(var i=0;i<b.length;i++){ b[i].className = (b[i].getAttribute('data-v')===v)?'on':''; } }
+
+/* ---------- arranque ---------- */
+window.onload = function(){
+  S.lang = LS.get('gigli_lang') || 'es';
+  S.dark = LS.get('gigli_dark') === '1';
+  if(S.dark) document.body.classList.add('dark');
+  setTimeout(function(){
+    var sp=document.getElementById('splash'); if(sp) sp.style.display='none';
+    start();
+  }, 4200);
+};
+
+function start(){
+  var url = LS.get('gigli_url'), key = LS.get('gigli_key');
+  if(!url || !key){ viewConfig(); return; }
+  try{
+    S.sb = window.supabase.createClient(url, key);
+  }catch(e){ viewConfig('No se pudo conectar. Revisa la URL y la clave.'); return; }
+  S.sb.auth.getSession().then(function(r){
+    if(r && r.data && r.data.session){ S.user = r.data.session.user; afterLogin(); }
+    else viewAuth();
+  }).catch(function(){ viewAuth(); });
+}
+
+/* ---------- 1. Configuración ---------- */
+function viewConfig(err){
+  nav(false);
+  h('<h1>Conectar Gigli</h1><p class="sub">Pega los datos de tu proyecto de Supabase. Solo se hace una vez.</p>'
+   +(err?alertBox(err):'')
+   +'<div class="card">'
+   +'<label>Project URL</label><input id="u" placeholder="https://xxxxx.supabase.co" autocapitalize="off" autocorrect="off">'
+   +'<label style="display:block;margin-top:14px">Anon key</label><input id="k" placeholder="eyJhbGciOi..." autocapitalize="off" autocorrect="off">'
+   +'<button class="btn" id="go">Conectar</button>'
+   +'</div>');
+  on('go', function(){
+    var u=val('u'), k=val('k');
+    if(!u || !k){ viewConfig('Faltan datos. Rellena los dos campos.'); return; }
+    if(u.indexOf('http')!==0){ viewConfig('La URL debe empezar por https://'); return; }
+    LS.set('gigli_url', u.replace(/\/+$/,'')); LS.set('gigli_key', k);
+    start();
+  });
+}
+
+/* ---------- 2. Cuenta ---------- */
+function viewAuth(mode, err){
+  nav(false);
+  mode = mode || 'in';
+  var isUp = mode==='up';
+  h('<h1>Gig<span style="color:var(--red)">li</span></h1>'
+   +'<p class="sub">'+(isUp?'Crea tu cuenta para empezar.':'Entra para ver tus planes.')+'</p>'
+   +(err?alertBox(err):'')
+   +'<div class="card">'
+   +(isUp?'<label>Nombre</label><input id="n" placeholder="Tu nombre">':'')
+   +'<label style="display:block;margin-top:'+(isUp?'14px':'0')+'">Correo</label>'
+   +'<input id="e" type="email" placeholder="tu@correo.com" autocapitalize="off" autocorrect="off">'
+   +'<label style="display:block;margin-top:14px">Contraseña</label>'
+   +'<input id="p" type="password" placeholder="Mínimo 6 caracteres">'
+   +'<button class="btn" id="go">'+(isUp?'Crear cuenta':'Entrar')+'</button>'
+   +'<button class="btn ghost" id="sw">'+(isUp?'Ya tengo cuenta':'Crear una cuenta nueva')+'</button>'
+   +'</div>'
+   +'<button class="btn ghost" id="cfg">Cambiar datos de conexión</button>');
+  on('sw', function(){ viewAuth(isUp?'in':'up'); });
+  on('cfg', function(){ LS.del('gigli_url'); LS.del('gigli_key'); viewConfig(); });
+  on('go', function(){
+    var e=val('e'), p=val('p'), n=val('n');
+    if(!e || !p){ viewAuth(mode,'Escribe tu correo y tu contraseña.'); return; }
+    if(isUp && !n){ viewAuth(mode,'Escribe tu nombre.'); return; }
+    h('<div class="spin"></div><p class="sub" style="text-align:center">Un momento…</p>');
+    if(isUp){
+      S.sb.auth.signUp({email:e,password:p}).then(function(r){
+        if(r.error){ viewAuth('up', r.error.message); return; }
+        S.user = r.data.user;
+        if(!r.data.session){ viewAuth('in','Cuenta creada. Confirma el correo y entra.'); return; }
+        S.sb.from('profiles').upsert({id:S.user.id, name:n}).then(function(){ afterLogin(); });
+      });
+    } else {
+      S.sb.auth.signInWithPassword({email:e,password:p}).then(function(r){
+        if(r.error){ viewAuth('in', r.error.message); return; }
+        S.user = r.data.user; afterLogin();
+      });
+    }
+  });
+}
+
+function afterLogin(){
+  askNotify();
+  S.sb.from('profiles').select('*').eq('id',S.user.id).maybeSingle().then(function(r){
+    S.profile = (r && r.data) ? r.data : {id:S.user.id, name:'Tú'};
+    if(!r || !r.data){ S.sb.from('profiles').upsert({id:S.user.id, name:'Tú'}).then(function(){}); }
+    nav(true); viewHome();
+  });
+}
+
+/* ---------- 3. Inicio ---------- */
+function viewHome(){
+  setTab('home'); nav(true);
+  var cats=''; for(var i=0;i<CATS.length;i++){ var c=CATS[i];
+    cats += '<div class="cat" data-c="'+c.s+'"><span class="e">'+c.e+'</span><span class="n">'+esc(catName(c))+'</span></div>'; }
+  var moods=''; for(var j=0;j<MOODS.length;j++){ var m=MOODS[j];
+    moods += '<button class="chip'+(S.mood===m.s?' on':'')+'" data-m="'+m.s+'">'+m.e+' '+esc(S.lang==='en'?m.en:m.es)+'</button>'; }
+  h('<h1>'+t('q')+'</h1><p class="sub">Hola '+esc((S.profile&&S.profile.name)||'')+'. Elige algo y te buscamos gente cerca.</p>'
+   +'<div class="card"><label>Pídemelo con tus palabras</label>'
+   +'<input id="ai" placeholder="Ej: quiero ir a tomar un café">'
+   +'<div class="row" style="margin-top:8px"><button class="btn small soft" id="aigo">Buscar</button>'
+   +'<button class="btn small ghost" id="mic">🎤 Hablar</button></div>'
+   +'<div id="aiout"></div></div>'
+   +'<h2>'+t('mood')+'</h2><div class="chips">'+moods+'</div>'
+   +'<h2>Categorías</h2><div class="grid">'+cats+'</div>');
+  var cs=document.querySelectorAll('.cat');
+  for(var a=0;a<cs.length;a++){ cs[a].onclick=(function(el){ return function(){ pickCat(el.getAttribute('data-c')); }; })(cs[a]); }
+  var ms=document.querySelectorAll('[data-m]');
+  for(var b=0;b<ms.length;b++){ ms[b].onclick=(function(el){ return function(){
+    S.mood = (S.mood===el.getAttribute('data-m'))?null:el.getAttribute('data-m'); viewHome(); }; })(ms[b]); }
+  on('aigo', function(){ aiAsk(val('ai')); });
+  on('mic', voiceAsk);
+}
+
+/* Asistente: interpreta la frase y elige categoría */
+function aiAsk(text){
+  if(!text){ return; }
+  var out=document.getElementById('aiout');
+  var map={ cafe:['cafe','café','coffee','tomar algo','merendar'], comer:['comer','restaurante','cenar','almorzar','hambre','eat'],
+    gimnasio:['gimnasio','gym','pesas','entrenar'], caminar:['caminar','paseo','andar','walk'],
+    senderismo:['senderismo','montaña','ruta','hiking'], playa:['playa','mar','beach'],
+    deportes:['deporte','futbol','fútbol','baloncesto','padel','pádel','tenis'],
+    bailar:['bailar','discoteca','fiesta','salir de noche','dance'],
+    museos:['museo','arte','exposición','museum'], parques:['parque','park','naturaleza'],
+    conciertos:['concierto','música','music','teatro'], viajes:['viaje','excursión','trip'],
+    explorar:['explorar','descubrir','algo nuevo','no sé','aburrido'] };
+  var low=text.toLowerCase(), found=null;
+  for(var k in map){ for(var i=0;i<map[k].length;i++){ if(low.indexOf(map[k][i])>=0){ found=k; break; } } if(found) break; }
+  if(!found){ out.innerHTML=alertBox('No lo pillé. Prueba con "café", "gimnasio", "caminar"… o toca una categoría.'); return; }
+  var c=catBy(found);
+  out.innerHTML='<div class="alert">Vale: '+esc(catName(c))+' '+c.e+'. Buscando sitios…</div>';
+  setTimeout(function(){ pickCat(found); }, 500);
+}
+function voiceAsk(){
+  var R = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!R){ document.getElementById('aiout').innerHTML=alertBox('Tu teléfono no permite el micrófono aquí. Escríbelo.'); return; }
+  var r=new R(); r.lang = S.lang==='en'?'en-US':'es-ES'; r.interimResults=false;
+  document.getElementById('aiout').innerHTML='<div class="alert">Escuchando… habla ahora.</div>';
+  r.onresult=function(ev){ var txt=ev.results[0][0].transcript; document.getElementById('ai').value=txt; aiAsk(txt); };
+  r.onerror=function(){ document.getElementById('aiout').innerHTML=alertBox('No te oí bien. Inténtalo otra vez.'); };
+  r.start();
+}
+
+/* ---------- 4. Lugares reales cerca ---------- */
+function pickCat(slug){
+  S.cat = slug;
+  h('<div class="spin"></div><p class="sub" style="text-align:center">Buscando tu zona…</p>');
+  if(S.pos){ loadPlaces(); return; }
+  if(!navigator.geolocation){ askCity(); return; }
+  navigator.geolocation.getCurrentPosition(function(p){
+    S.pos={lat:p.coords.latitude, lng:p.coords.longitude}; loadPlaces();
+  }, function(){ askCity(); }, {timeout:9000, maximumAge:600000});
+}
+
+function askCity(err){
+  nav(true);
+  h('<button class="back" id="bk">← Volver</button><h1>¿En qué ciudad estás?</h1>'
+   +'<p class="sub">No pudimos usar tu GPS. Escribe tu ciudad y buscamos ahí.</p>'
+   +(err?alertBox(err):'')
+   +'<div class="card"><input id="city" placeholder="Ej: Oviedo, España"><button class="btn" id="go">Buscar aquí</button></div>');
+  on('bk', viewHome);
+  on('go', function(){
+    var c=val('city'); if(!c){ askCity('Escribe el nombre de tu ciudad.'); return; }
+    h('<div class="spin"></div>');
+    fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q='+encodeURIComponent(c))
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if(!d || !d.length){ askCity('No encontramos esa ciudad. Prueba con otro nombre.'); return; }
+        S.pos={lat:parseFloat(d[0].lat), lng:parseFloat(d[0].lon)}; loadPlaces();
+      }).catch(function(){ askCity('Sin conexión con el buscador de ciudades.'); });
+  });
+}
+
+function loadPlaces(){
+  var c = catBy(S.cat);
+  h('<div class="spin"></div><p class="sub" style="text-align:center">Buscando '+esc(catName(c)).toLowerCase()+' cerca…</p>');
+  var q = '[out:json][timeout:20];('
+    + 'node["'+c.k+'"="'+c.v+'"](around:5000,'+S.pos.lat+','+S.pos.lng+');'
+    + 'way["'+c.k+'"="'+c.v+'"](around:5000,'+S.pos.lat+','+S.pos.lng+');'
+    + ');out center 30;';
+  fetch('https://overpass-api.de/api/interpreter', {method:'POST', body:'data='+encodeURIComponent(q),
+    headers:{'Content-Type':'application/x-www-form-urlencoded'}})
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      var out=[], seen={};
+      var els=(d && d.elements) || [];
+      for(var i=0;i<els.length;i++){
+        var e=els[i]; var name=(e.tags&&e.tags.name)||''; if(!name || seen[name]) continue;
+        var la = e.lat || (e.center&&e.center.lat), ln = e.lon || (e.center&&e.center.lon);
+        if(!la||!ln) continue; seen[name]=1;
+        var addr = ((e.tags['addr:street']||'')+' '+(e.tags['addr:housenumber']||'')).trim();
+        out.push({name:name, addr:addr, lat:la, lng:ln, d:dist(S.pos.lat,S.pos.lng,la,ln)});
+      }
+      out.sort(function(a,b){ return a.d-b.d; });
+      viewPlaces(out.slice(0,15));
+    })
+    .catch(function(){ viewPlaces([]); });
+}
+
+function viewPlaces(list){
+  nav(true);
+  var c=catBy(S.cat);
+  var html='<button class="back" id="bk">← Volver</button>'
+    +'<h1>'+esc(catName(c))+' '+c.e+'</h1><p class="sub">'+t('near')+'</p>';
+  if(!list.length){
+    html += alertBox('No encontramos sitios con nombre por aquí. Escribe tú el lugar del encuentro.');
+  }
+  for(var i=0;i<list.length;i++){
+    var p=list[i];
+    html += '<div class="card" data-p="'+i+'" style="cursor:pointer">'
+      +'<div class="row"><div class="grow"><b>'+esc(p.name)+'</b>'
+      +'<div class="muted">'+esc(p.addr||'Lugar público')+'</div></div>'
+      +'<span class="pill">'+p.d.toFixed(1)+' km</span></div></div>';
+  }
+  html += '<div class="card"><label>O escribe el lugar</label>'
+    +'<input id="manual" placeholder="Ej: Plaza Mayor"><button class="btn ghost" id="mgo">Usar este lugar</button></div>';
+  h(html);
+  on('bk', viewHome);
+  var cards=document.querySelectorAll('[data-p]');
+  for(var j=0;j<cards.length;j++){ cards[j].onclick=(function(idx){ return function(){
+    S.place=list[idx]; viewWhen(); }; })(j); }
+  on('mgo', function(){
+    var m=val('manual'); if(!m) return;
+    S.place={name:m, addr:'', lat:S.pos.lat, lng:S.pos.lng, d:0}; viewWhen();
+  });
+}
+
+/* ---------- 5. Hora y grupo ---------- */
+function viewWhen(){
+  nav(true);
+  var now=new Date();
+  var opts=[{l:'Ahora', m:15},{l:'En 1 hora', m:60},{l:'En 2 horas', m:120},{l:'Esta tarde', m:240}];
+  var chips=''; for(var i=0;i<opts.length;i++){ chips += '<button class="chip" data-t="'+opts[i].m+'">'+opts[i].l+'</button>'; }
+  h('<button class="back" id="bk">← Volver</button>'
+   +'<h1>'+t('when')+'</h1><p class="sub">Quedarás en <b>'+esc(S.place.name)+'</b>. Solo se comparte este lugar público.</p>'
+   +'<div class="card"><div class="chips">'+chips+'</div>'
+   +'<label style="display:block;margin-top:16px">O elige día y hora</label>'
+   +'<input id="dt" type="datetime-local">'
+   +'</div>'
+   +'<h2>'+t('who')+'</h2>'
+   +'<div class="card"><div class="chips">'
+   +'<button class="chip'+(S.size===1?' on':'')+'" data-s="1">Una persona</button>'
+   +'<button class="chip'+(S.size===3?' on':'')+'" data-s="3">Grupo pequeño</button>'
+   +'<button class="chip'+(S.size===6?' on':'')+'" data-s="6">Grupo grande</button>'
+   +'</div></div>');
+  on('bk', function(){ loadPlaces(); });
+  var ss=document.querySelectorAll('[data-s]');
+  for(var a=0;a<ss.length;a++){ ss[a].onclick=(function(el){ return function(){
+    S.size=parseInt(el.getAttribute('data-s'),10); viewWhen(); }; })(ss[a]); }
+  var ts=document.querySelectorAll('[data-t]');
+  for(var b=0;b<ts.length;b++){ ts[b].onclick=(function(el){ return function(){
+    var d=new Date(Date.now()+parseInt(el.getAttribute('data-t'),10)*60000); createRequest(d); }; })(ts[b]); }
+  var dt=document.getElementById('dt');
+  if(dt) dt.onchange=function(){ if(dt.value) createRequest(new Date(dt.value)); };
+}
+
+/* ---------- 6. Crear plan + sala de espera ---------- */
+function createRequest(when){
+  h('<div class="spin"></div><p class="sub" style="text-align:center">Creando tu plan…</p>');
+  S.sb.from('activity_requests').insert({
+    user_id:S.user.id, category_slug:S.cat, mood:S.mood,
+    place_name:S.place.name, place_address:S.place.addr||'',
+    lat:S.place.lat, lng:S.place.lng,
+    start_time: when.toISOString(), group_size:S.size, status:'waiting'
+  }).select().single().then(function(r){
+    if(r.error){ h(alertBox('No se pudo crear el plan: '+r.error.message)+'<button class="btn" id="b">Volver</button>'); on('b',viewHome); return; }
+    S.request = r.data; viewWaiting();
+  });
+}
+
+function viewWaiting(){
+  nav(true);
+  var c=catBy(S.request.category_slug);
+  var sug=''; var pick=[];
+  for(var i=0;i<CATS.length && pick.length<4;i++){ if(CATS[i].s!==S.cat) pick.push(CATS[i]); }
+  for(var j=0;j<pick.length;j++){ sug += '<button class="chip" data-alt="'+pick[j].s+'">'+pick[j].e+' '+esc(catName(pick[j]))+'</button>'; }
+  h('<h1>'+t('wait')+'</h1>'
+   +'<div class="card"><div class="row"><div class="grow">'
+   +'<b>'+esc((c?catName(c):S.request.category_slug))+' en '+esc(S.request.place_name)+'</b>'
+   +'<div class="muted">'+fmtTime(S.request.start_time)+'</div></div><span class="pill">Buscando</span></div>'
+   +'<div class="spin"></div>'
+   +'<p class="muted" style="text-align:center">'+t('nomatch')+'</p>'
+   +'<button class="btn ghost" id="cancel">'+t('cancel')+'</button></div>'
+   +'<h2>Mientras esperas</h2><p class="sub">Puedes abrir otro plan en paralelo.</p>'
+   +'<div class="chips">'+sug+'</div>'
+   +'<div class="card"><b>Rompehielos</b><div class="muted" id="tip">'+iceTip()+'</div>'
+   +'<button class="btn small soft" id="more" style="margin-top:10px">Otra idea</button></div>');
+  on('cancel', function(){
+    clearInterval(S.timer);
+    S.sb.from('activity_requests').update({status:'cancelled'}).eq('id',S.request.id).then(function(){ viewHome(); });
+  });
+  on('more', function(){ document.getElementById('tip').innerHTML = iceTip(); });
+  var alts=document.querySelectorAll('[data-alt]');
+  for(var k=0;k<alts.length;k++){ alts[k].onclick=(function(el){ return function(){
+    clearInterval(S.timer); pickCat(el.getAttribute('data-alt')); }; })(alts[k]); }
+  clearInterval(S.timer);
+  tryMatch();
+  S.timer = setInterval(tryMatch, 6000);
+}
+
+var TIPS = [
+ 'Llega 5 minutos antes y siéntate donde se vea la entrada.',
+ 'Si te da corte empezar: "¿Es la primera vez que quedas por Gigli?".',
+ 'Pregunta por su sitio favorito del barrio. Siempre tienen uno.',
+ 'No hace falta llenar los silencios. Un café tranquilo también cuenta.',
+ 'Si algo no te encaja, puedes irte cuando quieras. No debes explicaciones.'
+];
+function iceTip(){ return esc(TIPS[Math.floor(Math.random()*TIPS.length)]); }
+
+/* ---------- 7. Matching real ---------- */
+function tryMatch(){
+  if(!S.request) return;
+  S.sb.from('matches').select('*').or('user_a.eq.'+S.user.id+',user_b.eq.'+S.user.id)
+    .eq('status','active').order('created_at',{ascending:false}).limit(1)
+    .then(function(r){
+      if(r.data && r.data.length){ clearInterval(S.timer); S.match=r.data[0];
+        notify('¡Tienes match en Gigli!','Abre el chat y quedad.'); viewMatched(); return; }
+      findCandidate();
+    });
+}
+
+function findCandidate(){
+  var mine=S.request;
+  var t0=new Date(new Date(mine.start_time).getTime()-90*60000).toISOString();
+  var t1=new Date(new Date(mine.start_time).getTime()+90*60000).toISOString();
+  S.sb.from('activity_requests').select('*')
+    .eq('category_slug', mine.category_slug).eq('status','waiting')
+    .neq('user_id', S.user.id).gte('start_time', t0).lte('start_time', t1).limit(20)
+    .then(function(r){
+      if(r.error || !r.data || !r.data.length) return;
+      S.sb.from('blocks').select('blocked_id,blocker_id').then(function(b){
+        var bad={};
+        var rows=(b&&b.data)||[];
+        for(var i=0;i<rows.length;i++){
+          if(rows[i].blocker_id===S.user.id) bad[rows[i].blocked_id]=1;
+          if(rows[i].blocked_id===S.user.id) bad[rows[i].blocker_id]=1;
+        }
+        var best=null, bestD=1e9;
+        for(var j=0;j<r.data.length;j++){
+          var o=r.data[j]; if(bad[o.user_id]) continue;
+          var d=(o.lat&&o.lng&&mine.lat&&mine.lng)? dist(mine.lat,mine.lng,o.lat,o.lng) : 0;
+          if(d>15) continue;
+          if(d<bestD){ bestD=d; best=o; }
+        }
+        if(!best) return;
+        S.sb.from('matches').insert({
+          request_a:mine.id, request_b:best.id,
+          user_a:S.user.id, user_b:best.user_id, status:'active'
+        }).select().single().then(function(m){
+          if(m.error) return;
+          S.sb.from('activity_requests').update({status:'matched'}).in('id',[mine.id,best.id]).then(function(){});
+          clearInterval(S.timer); S.match=m.data;
+          notify('¡Tienes match en Gigli!','Abre el chat y quedad.');
+          viewMatched();
+        });
+      });
+    });
+}
+
+function viewMatched(){
+  nav(true);
+  var other = (S.match.user_a===S.user.id)? S.match.user_b : S.match.user_a;
+  h('<h1>'+t('matched')+' 🎉</h1><p class="sub">Ya podéis hablar y confirmar la hora.</p>'
+   +'<div class="card"><div id="who" class="muted">Cargando…</div>'
+   +'<div style="margin-top:10px"><b>'+esc(S.request?S.request.place_name:'')+'</b>'
+   +'<div class="muted">'+(S.request?fmtTime(S.request.start_time):'')+'</div></div>'
+   +'<button class="btn" id="chat">Abrir chat</button>'
+   +'<button class="btn ghost" id="maps">Ver el lugar en el mapa</button></div>'
+   +'<p class="muted">Tu casa nunca se comparte. Solo se ve el lugar público del plan.</p>');
+  S.sb.from('profiles').select('name,city,bio').eq('id',other).maybeSingle().then(function(r){
+    var w=document.getElementById('who'); if(!w) return;
+    var p=(r&&r.data)||{};
+    w.innerHTML='<b style="color:var(--ink)">'+esc(p.name||'Alguien')+'</b> '+esc(p.city||'')+'<br>'+esc(p.bio||'');
+  });
+  on('chat', function(){ openChat(S.match); });
+  on('maps', function(){
+    if(!S.request) return;
+    window.open('https://www.google.com/maps/search/?api=1&query='+S.request.lat+','+S.request.lng,'_blank');
+  });
+}
+
+/* ---------- 8. Chat en tiempo real ---------- */
+function openChat(m){
+  S.match=m; S.seen={}; nav(true);
+  var other=(m.user_a===S.user.id)? m.user_b : m.user_a;
+  h('<div class="top"><button class="back" id="bk">← Chats</button>'
+   +'<button class="back" id="menu" style="color:var(--ink2)">⋯</button></div>'
+   +'<h2 id="title">Chat</h2>'
+   +'<div id="menubox" class="hide"><div class="card">'
+   +'<button class="btn ghost" id="rep">Reportar a esta persona</button>'
+   +'<button class="btn ghost" id="blo">Bloquear y salir</button></div></div>'
+   +'<div id="msgs"></div>'
+   +'<div class="card"><input id="txt" placeholder="'+t('write')+'">'
+   +'<button class="btn" id="send">'+t('send')+'</button></div>');
+  on('bk', viewChats);
+  on('menu', function(){ var b=document.getElementById('menubox'); b.className = b.className==='hide'?'':'hide'; });
+  on('rep', function(){ doReport(other); });
+  on('blo', function(){ doBlock(other); });
+  on('send', sendMsg);
+  var tx=document.getElementById('txt');
+  if(tx) tx.onkeydown=function(e){ if(e.key==='Enter') sendMsg(); };
+  S.sb.from('profiles').select('name').eq('id',other).maybeSingle().then(function(r){
+    var n=document.getElementById('title'); if(n) n.textContent = (r&&r.data&&r.data.name)||'Chat';
+  });
+  loadMsgs();
+  clearInterval(S.timer);
+  S.timer=setInterval(loadMsgs, 4000);
+  try{
+    if(S.chan) S.sb.removeChannel(S.chan);
+    S.chan = S.sb.channel('gigli-'+m.id)
+      .on('postgres_changes',{event:'INSERT',schema:'public',table:'chat_messages',filter:'match_id=eq.'+m.id},
+        function(p){ addMsg(p.new); })
+      .subscribe();
+  }catch(e){}
+}
+function loadMsgs(){
+  if(!S.match) return;
+  S.sb.from('chat_messages').select('*').eq('match_id',S.match.id)
+    .order('created_at',{ascending:true}).limit(200).then(function(r){
+      if(!r.data) return;
+      for(var i=0;i<r.data.length;i++) addMsg(r.data[i]);
+    });
+}
+function addMsg(m){
+  var box=document.getElementById('msgs'); if(!box || S.seen[m.id]) return;
+  S.seen[m.id]=1;
+  var d=document.createElement('div');
+  d.className='msg '+(m.sender_id===S.user.id?'me':'you');
+  d.textContent=m.content;
+  box.appendChild(d); box.scrollTop=box.scrollHeight;
+}
+function sendMsg(){
+  var tx=document.getElementById('txt'); if(!tx) return;
+  var v=tx.value.trim(); if(!v) return; tx.value='';
+  S.sb.from('chat_messages').insert({match_id:S.match.id, sender_id:S.user.id, content:v})
+    .select().single().then(function(r){ if(r.data) addMsg(r.data); });
+}
+function doReport(other){
+  var why = prompt('¿Qué ha pasado? Lo revisamos.');
+  if(!why) return;
+  S.sb.from('reports').insert({reporter_id:S.user.id, reported_id:other, reason:why}).then(function(){
+    alert('Reporte enviado. Gracias por avisar.');
+  });
+}
+function doBlock(other){
+  if(!confirm('Bloquear a esta persona. No volveréis a coincidir.')) return;
+  S.sb.from('blocks').insert({blocker_id:S.user.id, blocked_id:other}).then(function(){
+    S.sb.from('matches').update({status:'closed'}).eq('id',S.match.id).then(function(){
+      clearInterval(S.timer); S.match=null; viewChats();
+    });
+  });
+}
+
+/* ---------- 9. Planes ---------- */
+function viewPlans(){
+  setTab('plans'); nav(true); clearInterval(S.timer);
+  h('<h1>'+t('plans')+'</h1><div class="spin"></div>');
+  S.sb.from('activity_requests').select('*').eq('user_id',S.user.id)
+    .order('start_time',{ascending:false}).limit(50).then(function(r){
+      var html='<h1>'+t('plans')+'</h1>';
+      var rows=(r&&r.data)||[];
+      if(!rows.length){ html+='<div class="card"><b>Aún no tienes planes</b>'
+        +'<div class="muted">Elige una actividad en Inicio y te buscamos gente.</div>'
+        +'<button class="btn" id="go">Crear un plan</button></div>'; }
+      for(var i=0;i<rows.length;i++){
+        var p=rows[i]; var c=catBy(p.category_slug);
+        html+='<div class="card"><div class="row"><div class="grow">'
+          +'<b>'+(c?c.e+' '+esc(catName(c)):esc(p.category_slug))+'</b>'
+          +'<div class="muted">'+esc(p.place_name)+' · '+fmtTime(p.start_time)+'</div></div>'
+          +'<span class="pill">'+esc(p.status)+'</span></div>'
+          +(p.status==='waiting'?'<button class="btn ghost" data-x="'+p.id+'">'+t('cancel')+'</button>':'')
+          +'</div>';
+      }
+      h(html); on('go', viewHome);
+      var xs=document.querySelectorAll('[data-x]');
+      for(var j=0;j<xs.length;j++){ xs[j].onclick=(function(el){ return function(){
+        S.sb.from('activity_requests').update({status:'cancelled'}).eq('id',el.getAttribute('data-x')).then(viewPlans);
+      }; })(xs[j]); }
+    });
+}
+
+/* ---------- 10. Chats ---------- */
+function viewChats(){
+  setTab('chats'); nav(true); clearInterval(S.timer);
+  h('<h1>'+t('chats')+'</h1><div class="spin"></div>');
+  S.sb.from('matches').select('*').or('user_a.eq.'+S.user.id+',user_b.eq.'+S.user.id)
+    .eq('status','active').order('created_at',{ascending:false}).limit(50).then(function(r){
+      var rows=(r&&r.data)||[];
+      var html='<h1>'+t('chats')+'</h1>';
+      if(!rows.length){ html+='<div class="card"><b>Sin chats todavía</b>'
+        +'<div class="muted">Cuando haya match, la conversación aparece aquí.</div></div>'; }
+      for(var i=0;i<rows.length;i++){
+        html+='<div class="card" data-m="'+i+'" style="cursor:pointer"><div class="row">'
+          +'<div class="grow"><b class="nm" id="nm'+i+'">Abrir chat</b>'
+          +'<div class="muted">'+fmtTime(rows[i].created_at)+'</div></div><span class="pill">Activo</span></div></div>';
+      }
+      h(html);
+      var cs=document.querySelectorAll('[data-m]');
+      for(var j=0;j<cs.length;j++){ cs[j].onclick=(function(idx){ return function(){ openChat(rows[idx]); }; })(j); }
+      for(var k=0;k<rows.length;k++){ (function(idx){
+        var other=(rows[idx].user_a===S.user.id)? rows[idx].user_b : rows[idx].user_a;
+        S.sb.from('profiles').select('name').eq('id',other).maybeSingle().then(function(p){
+          var n=document.getElementById('nm'+idx);
+          if(n && p && p.data) n.textContent=p.data.name||'Alguien';
+        });
+      })(k); }
+    });
+}
+
+/* ---------- 11. Perfil ---------- */
+function viewMe(){
+  setTab('me'); nav(true); clearInterval(S.timer);
+  var p=S.profile||{};
+  h('<h1>'+t('me')+'</h1>'
+   +'<div class="card">'
+   +'<label>Nombre</label><input id="n" value="'+esc(p.name||'')+'">'
+   +'<label style="display:block;margin-top:14px">Ciudad</label><input id="c" value="'+esc(p.city||'')+'">'
+   +'<label style="display:block;margin-top:14px">Sobre ti</label><textarea id="b">'+esc(p.bio||'')+'</textarea>'
+   +'<button class="btn" id="save">Guardar cambios</button></div>'
+   +'<div class="card"><b>Preferencias</b>'
+   +'<div class="chips" style="margin-top:10px">'
+   +'<button class="chip'+(S.lang==='es'?' on':'')+'" id="es">Español</button>'
+   +'<button class="chip'+(S.lang==='en'?' on':'')+'" id="en">English</button>'
+   +'<button class="chip'+(S.dark?' on':'')+'" id="dk">🌙 Modo oscuro</button>'
+   +'</div></div>'
+   +'<div class="card"><b>Privacidad</b>'
+   +'<div class="muted">Gigli nunca comparte dónde vives. Solo se muestra el lugar público que eliges para cada plan.</div></div>'
+   +'<button class="btn ghost" id="out">'+t('logout')+'</button>'
+   +'<button class="btn ghost" id="cfg">Cambiar datos de conexión</button>');
+  on('save', function(){
+    S.sb.from('profiles').upsert({id:S.user.id, name:val('n'), city:val('c'), bio:val('b')})
+      .then(function(){ S.profile={id:S.user.id,name:val('n'),city:val('c'),bio:val('b')};
+        alert('Guardado'); });
+  });
+  on('es', function(){ S.lang='es'; LS.set('gigli_lang','es'); viewMe(); });
+  on('en', function(){ S.lang='en'; LS.set('gigli_lang','en'); viewMe(); });
+  on('dk', function(){ S.dark=!S.dark; LS.set('gigli_dark', S.dark?'1':'0');
+    document.body.classList.toggle('dark'); viewMe(); });
+  on('out', function(){ S.sb.auth.signOut().then(function(){ S.user=null; viewAuth(); }); });
+  on('cfg', function(){ LS.del('gigli_url'); LS.del('gigli_key'); viewConfig(); });
+}
+
+/* ---------- navegación inferior ---------- */
+var nb=document.querySelectorAll('#nav button');
+for(var i=0;i<nb.length;i++){
+  nb[i].onclick=(function(el){ return function(){
+    var v=el.getAttribute('data-v');
+    if(v==='home') viewHome();
+    else if(v==='plans') viewPlans();
+    else if(v==='chats') viewChats();
+    else viewMe();
+  }; })(nb[i]);
+}
+</script>
+</body>
+</html>
