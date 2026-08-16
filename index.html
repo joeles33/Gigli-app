@@ -484,7 +484,10 @@ async function screenChats(){
   });
 }
 
-functfunction screenMe(){
+document.querySelectorAll('[data-id]').forEach(c => {
+    c.onclick = () => screenChat(lista.find(x => x.id === c.dataset.id));
+  });
+}
   tabs.classList.remove('hide'); setTab('me');
   const p = state.profile;
   app.innerHTML = `
