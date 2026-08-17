@@ -325,6 +325,7 @@ function viewHome(){
     S.mood = (S.mood===el.getAttribute('data-m'))?null:el.getAttribute('data-m'); viewHome(); }; })(ms[b]); }
   on('aigo', function(){ aiAsk(val('ai')); });
   on('mic', voiceAsk);
+  drawMap();
 }
 
 /* Asistente: interpreta la frase y elige categoría */
