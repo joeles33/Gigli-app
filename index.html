@@ -306,7 +306,7 @@ function afterLogin(){
 function viewHome(){
   setTab('home'); nav(true);
   if(!S.pos && navigator.geolocation){ navigator.geolocation.getCurrentPosition(function(p){ S.pos={lat:p.coords.latitude,lng:p.coords.longitude}; saveArea(); drawMap(); },function(){},{timeout:9000,maximumAge:600000}); }
-  drawMap();
+
   var cats=''; for(var i=0;i<CATS.length;i++){ var c=CATS[i];
     cats += '<div class="cat" data-c="'+c.s+'"><span class="e">'+c.e+'</span><span class="n">'+esc(catName(c))+'</span></div>'; }
   var moods=''; for(var j=0;j<MOODS.length;j++){ var m=MOODS[j];
