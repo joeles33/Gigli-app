@@ -192,6 +192,18 @@ function askNotify(){
   try{ if(window.Notification && Notification.permission==='default') Notification.requestPermission(); }catch(e){}
 }
 function nav(show){ var n=document.getElementById('nav'); if(n) n.className = show? 'nav':'nav hide'; }
+  function areaPoint(lat,lng,id){
+  var s=0; for(var i=0;i<id.length;i++){ s=(s*31+id.charCodeAt(i))>>>0; }
+  var ang=(s%360)*Math.PI/180, km=2.4+((s>>9)%16)/10;
+  return { lat: lat + (km/111)*Math.cos(ang),
+           lng: lng + (km/(111*Math.cos(lat*Math.PI/180)))*Math.sin(ang) };
+}
+function saveArea(){
+  if(!S.pos || !S.user) return;
+  if(S.profile && S.profile.area_lat){ S.sb.from('profiles').update({last_seen:new Date().toISOString()}).eq('id',S.user.id).then(function(){}); return; }
+  var a=areaPoint(S.pos.lat,S.pos.lng,S.user.id);
+  S.sb.from('profiles').update({area_lat:a.lat, area_lng:a.lng, last_seen:new Date().toISOString()}).eq('id',S.user.id).then(function(){});
+}
 function setTab(v){ var b=document.querySelectorAll('#nav button');
   for(var i=0;i<b.length;i++){ b[i].className = (b[i].getAttribute('data-v')===v)?'on':''; } }
 
