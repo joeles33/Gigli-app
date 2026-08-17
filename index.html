@@ -310,7 +310,7 @@ function viewHome(){
     cats += '<div class="cat" data-c="'+c.s+'"><span class="e">'+c.e+'</span><span class="n">'+esc(catName(c))+'</span></div>'; }
   var moods=''; for(var j=0;j<MOODS.length;j++){ var m=MOODS[j];
     moods += '<button class="chip'+(S.mood===m.s?' on':'')+'" data-m="'+m.s+'">'+m.e+' '+esc(S.lang==='en'?m.en:m.es)+'</button>'; }
-  h('<h1>'+t('q')+'</h1><p class="sub">Hola '+esc((S.profile&&S.profile.name)||'')+'. Elige algo y te buscamos gente cerca.</p>'
+  h('<div id="map"></div><h1>'+t('q')+'</h1><p class="sub">Hola '+esc((S.profile&&S.profile.name)||'')+'. Elige algo y te buscamos gente cerca.</p>'
    +'<div class="card"><label>Pídemelo con tus palabras</label>'
    +'<input id="ai" placeholder="Ej: quiero ir a tomar un café">'
    +'<div class="row" style="margin-top:8px"><button class="btn small soft" id="aigo">Buscar</button>'
