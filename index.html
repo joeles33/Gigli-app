@@ -825,7 +825,7 @@ document.getElementById('btnMapa').addEventListener('click', function() {
       }
       S.sb.from('profiles').upsert({
         id: S.user.id,
-        lat: lat,
+      area_lat: lat,
         lng: lng,
         last_seen: new Date().toISOString()
       });
