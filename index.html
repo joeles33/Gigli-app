@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+7<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="utf-8">
@@ -771,5 +771,18 @@ for(var i=0;i<nb.length;i++){
 </script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <button id="btnMapa" onclick="document.getElementById('mapaGigli').style.display='block'">Mapa</button>
+
+<div id="mapaGigli">
+  <button id="cerrarMapa" onclick="document.getElementById('mapaGigli').style.display='none'">Cerrar</button>
+  <div id="mapaLienzo"></div>
+</div>
+
+<style>
+#btnMapa { position:fixed; right:16px; bottom:80px; z-index:9000; background:#e11d2a; color:#fff; border:none; border-radius:28px; padding:14px 22px; font-size:16px; font-weight:bold; }
+#mapaGigli { display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:9500; background:#000; }
+#mapaLienzo { width:100%; height:100%; }
+#cerrarMapa { position:absolute; top:16px; right:16px; z-index:9600; background:#e11d2a; color:#fff; border:none; border-radius:20px; padding:10px 18px; font-size:15px; }
+</style>
 </body>
 </html>
