@@ -819,7 +819,7 @@ document.getElementById('btnMapa').addEventListener('click', function() {
       var precisa = r && r.data && r.data.ubicacion_precisa;
       var lat = pos.coords.latitude;
       var lng = pos.coords.longitude;
-      if (!precisa) {
+      if (true) {
         lat = Math.round(lat / 0.03) * 0.03;
         lng = Math.round(lng / 0.03) * 0.03;
       }
