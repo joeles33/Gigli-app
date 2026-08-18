@@ -811,5 +811,27 @@ document.getElementById('btnMapa').addEventListener('click', function() {
   }
 });
   </script>
+  <script>
+document.getElementById('btnMapa').addEventListener('click', function() {
+  if (!navigator.geolocation || !S.user) return;
+  navigator.geolocation.getCurrentPosition(function(pos) {
+    S.sb.from('profiles').select('ubicacion_precisa').eq('id', S.user.id).maybeSingle().then(function(r) {
+      var precisa = r && r.data && r.data.ubicacion_precisa;
+      var lat = pos.coords.latitude;
+      var lng = pos.coords.longitude;
+      if (!precisa) {
+        lat = Math.round(lat / 0.03) * 0.03;
+        lng = Math.round(lng / 0.03) * 0.03;
+      }
+      S.sb.from('profiles').upsert({
+        id: S.user.id,
+        lat: lat,
+        lng: lng,
+        last_seen: new Date().toISOString()
+      });
+    });
+  });
+});
+</script>
 </body>
 </html>
