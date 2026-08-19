@@ -869,5 +869,27 @@ document.getElementById('btnMapa').addEventListener('click', async function(){
   alert('Filas: ' + r.data.length + ' | Columnas: ' + Object.keys(r.data[0]||{}).join(','));
 });
   </script>
+  <script>
+document.getElementById('btnMapa').addEventListener('click', function(){
+  setTimeout(async function(){
+    if (!window.mapa) { alert('Mapa no listo'); return; }
+    var r = await S.sb.from('profiles').select('*');
+    if (r.error) { alert('ERROR: ' + r.error.message); return; }
+    var n = 0;
+    for (var i = 0; i < r.data.length; i++) {
+      var p = r.data[i];
+      if (p.area_lat == null || p.area_lng == null) continue;
+      var visto = p.last_seen ? new Date(p.last_seen).getTime() : 0;
+      var on = (Date.now() - visto) < 300000;
+      L.circleMarker([p.area_lat, p.area_lng], {
+        radius: 14, color: '#fff', weight: 3,
+        fillColor: on ? '#22c55e' : '#3b82f6', fillOpacity: 1
+      }).addTo(window.mapa).bindPopup(p.name || 'Alguien');
+      n++;
+    }
+    alert('Puntos pintados: ' + n);
+  }, 1500);
+});
+  </script>
 </body>
 </html>
