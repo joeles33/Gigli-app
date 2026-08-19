@@ -790,7 +790,7 @@ var mapaGigliCreado = false;
 document.getElementById('btnMapa').addEventListener('click', function() {
   document.getElementById('mapaGigli').style.display = 'block';
   if (!mapaGigliCreado) {
-    var mapa = L.map('mapaLienzo').setView([43.3619, -5.8494], 14);
+    window.mapa = L.map('mapaLienzo').setView([43.3619, -5.8494], 14);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
       attribution: '&copy; OpenStreetMap &copy; CARTO',
       maxZoom: 19
