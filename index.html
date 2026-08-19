@@ -851,7 +851,7 @@ function cargarPersonasGigli() {
       var online = (ahora - visto) < 300000;
       var m = L.circleMarker([p.area_lat, p.area_lng], {
         radius: 8, color: '#fff', weight: 2,
-        fillColor: online ? '#22c55e' : '#e11d2a', fillOpacity: 1
+        fillColor: online ? '#22c55e' : '#3b82f6', fillOpacity: 1
       }).addTo(window.mapa);
       m.bindPopup((p.name || 'Alguien') + (online ? ' - conectado' : ' - desconectado'));
       puntosGigli.push(m);
