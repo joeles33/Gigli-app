@@ -838,7 +838,7 @@ document.getElementById('btnMapa').addEventListener('click', function() {
 var puntosGigli = [];
 function cargarPersonasGigli() {
   if (!window.mapa || !S.sb) return;
-  S.sb.from('profiles').select('id,name,area_lat,area_lng,last_seen').then(function(r) {
+ S.sb.from('profiles').select('*').then(function(r) { 
     if (!r.data) return;
     for (var j = 0; j < puntosGigli.length; j++) window.mapa.removeLayer(puntosGigli[j]);
     puntosGigli = [];
