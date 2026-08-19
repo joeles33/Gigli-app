@@ -887,6 +887,7 @@ document.getElementById('btnMapa').addEventListener('click', function(){
       }).addTo(window.mapa).bindPopup(p.name || 'Alguien');
       n++;
     }
+    if (n) window.mapa.setView([r.data[0].area_lat, r.data[0].area_lng], 13);
     alert('Puntos pintados: ' + n);
   }, 1500);
 });
