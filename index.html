@@ -862,5 +862,12 @@ document.getElementById('btnMapa').addEventListener('click', function() {
   setTimeout(cargarPersonasGigli, 1500);
 });
 </script>
+  <script>
+document.getElementById('btnMapa').addEventListener('click', async function(){
+  var r = await S.sb.from('profiles').select('*');
+  if (r.error) { alert('ERROR: ' + r.error.message); return; }
+  alert('Filas: ' + r.data.length + ' | Columnas: ' + Object.keys(r.data[0]||{}).join(','));
+});
+  </script>
 </body>
 </html>
