@@ -834,5 +834,32 @@ document.getElementById('btnMapa').addEventListener('click', function() {
   });
 });
 </script>
+  <script>
+var puntosGigli = [];
+function cargarPersonasGigli() {
+  if (!window.mapa || !S.sb) return;
+  S.sb.from('profiles').select('id,name,area_lat,area_lng,last_seen').then(function(r) {
+    if (!r.data) return;
+    for (var j = 0; j < puntosGigli.length; j++) window.mapa.removeLayer(puntosGigli[j]);
+    puntosGigli = [];
+    var ahora = Date.now();
+    for (var i = 0; i < r.data.length; i++) {
+      var p = r.data[i];
+      if (p.area_lat == null || p.area_lng == null) continue;
+      var visto = p.last_seen ? new Date(p.last_seen).getTime() : 0;
+      var online = (ahora - visto) < 300000;
+      var m = L.circleMarker([p.area_lat, p.area_lng], {
+        radius: 8, color: '#fff', weight: 2,
+        fillColor: online ? '#22c55e' : '#e11d2a', fillOpacity: 1
+      }).addTo(window.mapa);
+      m.bindPopup((p.name || 'Alguien') + (online ? ' - conectado' : ' - desconectado'));
+      puntosGigli.push(m);
+    }
+  });
+}
+document.getElementById('btnMapa').addEventListener('click', function() {
+  setTimeout(cargarPersonasGigli, 1500);
+});
+</script>
 </body>
 </html>
