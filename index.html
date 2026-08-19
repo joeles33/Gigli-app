@@ -839,7 +839,8 @@ var puntosGigli = [];
 function cargarPersonasGigli() {
   if (!window.mapa || !S.sb) return;
  S.sb.from('profiles').select('*').then(function(r) { 
-    if (!r.data) return;
+    if (r.error) { alert('Error Gigli: ' + r.error.message); return; }
+    if (!r.data || !r.data.length) { alert('Gigli: llegaron 0 perfiles'); return; }
     for (var j = 0; j < puntosGigli.length; j++) window.mapa.removeLayer(puntosGigli[j]);
     puntosGigli = [];
     var ahora = Date.now();
